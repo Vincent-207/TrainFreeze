@@ -23,43 +23,61 @@ public class Train : MonoBehaviour
     IEnumerator DoUnitMove()
     {
         // Get square
-        TileUnit square = null;
+        TrackUnit track = null;
         RaycastHit2D[] hits = Physics2D.CircleCastAll(transform.position, 0.5f, transform.forward, 0.0001f);
         foreach(RaycastHit2D hit in hits)
         {
-            square = hit.collider.GetComponent<TileUnit>();
-            if(square != null)
+            track = hit.collider.GetComponent<TrackUnit>();
+            if(track != null)
             {
                 Debug.Log("Found square!");
                 break;
             }
+
+            Goal goal = hit.collider.GetComponent<Goal>();
+            if(goal != null)
+            {
+                HandleGoal(goal);
+                yield break;
+            }
         }
-        if(square == null)
+        if(track == null)
         {
             Debug.LogWarning("Can't find square, stopping.");
             yield break;
         }
-        square.UpdateDirection(isFlagged);
-        Vector2 currentDirection = square.GetDirection();
+
+        Vector2 currentDirection = track.GetDirection();
         
         float timeToDo = 1f;
         float duration = timeToDo;
         while(duration > 0f)
         {
             duration -= Time.deltaTime;
-            // Move towards it.
-            Vector2 newPos = ( (Vector2)transform.position) + (currentDirection * Time.deltaTime * (1 / timeToDo));
-            transform.position = newPos;
-            // rotate towards direction
-            float angle = Mathf.Atan2(currentDirection.y, currentDirection.x) * Mathf.Rad2Deg;
-		    transform.rotation = Quaternion.AngleAxis(angle - 90f, Vector3.forward);
+            MoveAndTurn(currentDirection, track.transform.position);
             yield return null;
         }
 
         // Correct to be at exact end pos;
-        transform.position = square.transform.position + (Vector3) currentDirection;
+        transform.position = track.transform.position + (Vector3) currentDirection;
         yield return null;
 
         StartCoroutine(DoUnitMove());
+    }
+
+    void MoveAndTurn(Vector2 currentDirection, Vector2 trackPos)
+    {
+        Vector2 newPos = ( (Vector2)transform.position) + (currentDirection * Time.deltaTime);
+        float displacement = (newPos - trackPos).magnitude;
+        if(displacement > 1f) newPos = trackPos + currentDirection;
+        transform.position = newPos;
+        // rotate towards direction
+        float angle = Mathf.Atan2(currentDirection.y, currentDirection.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.AngleAxis(angle - 90f, Vector3.forward);
+    }
+
+    void HandleGoal(Goal goal)
+    {
+        Debug.Log("Goal!");
     }
 }

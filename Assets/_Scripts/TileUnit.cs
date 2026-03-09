@@ -1,17 +1,13 @@
+using System;
 using UnityEditor.UIElements;
 using UnityEngine;
 
-public class TileUnit : MonoBehaviour
+public class TrackUnit : MonoBehaviour
 {
-    [SerializeField] Vector2 flagDirection, noFlagDirection, currentDirection, gridPos;
-    public void UpdateDirection(bool flag)
-    {
-        if (flag) currentDirection = flagDirection;
-        else currentDirection = noFlagDirection;
-        
-    }
+    [SerializeField] internal Vector2 direction, gridPos;
     public Vector2 GetDirection()
     {
-        return currentDirection;
+        return direction;
     }
 }
+
